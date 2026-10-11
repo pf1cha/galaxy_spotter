@@ -13,8 +13,7 @@ class GalaxyInferenceEngine:
         self._initialize()
 
     def _initialize(self):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        target_path = dir_path+app_config.WEIGHTS_PATH
+        target_path = app_config.CURRENT_DIR+app_config.WEIGHTS_PATH
 
         if not target_path or not os.path.isabs(target_path):
             self.error_message = f"Invalid or non-absolute path provided: '{target_path}'"

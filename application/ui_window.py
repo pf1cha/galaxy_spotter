@@ -183,8 +183,7 @@ class GalaxyClassifierApp(QMainWindow):
             )
 
     def _open_file_dialog(self):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        target_path = dir_path+app_config.IMAGES_PATH
+        target_path = app_config.CURRENT_DIR+app_config.IMAGES_PATH
 
         file_path, _ = QFileDialog.getOpenFileName(
             self,
