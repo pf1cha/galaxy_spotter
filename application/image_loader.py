@@ -96,17 +96,20 @@ def process_fits(file_path):
 
     raw_data = np.array(raw_data, dtype=np.float32)
 
-    objects, data_sub, bkg = background_object_extraction(raw_data)
-    ellipses, subject_ellipse, subject_indx = get_ellipses(objects)
-    cleaned_data = clean_image(data_sub, bkg, objects, ellipses, subject_ellipse, subject_indx)
-
-    stretched = arcsinh_stretch(cleaned_data, scale=app_config.STRETCH_SCALE)
-
-    colored_rgba = (cm.inferno(stretched*5) * 255).astype(np.uint8)
+    # Purely visual image for display
+    # Shows the raw image only without pre-processing artifacts
+    stretched = arcsinh_stretch(raw_data, scale=app_config.STRETCH_SCALE)
+    colored_rgba = (cm.inferno(stretched*app_config.VISUAL_STRETCH_FACTOR) * 255).astype(np.uint8)
     h, w, _ = colored_rgba.shape
     qimg = QImage(colored_rgba.data, w, h, 4 * w, QImage.Format.Format_RGBA8888)
 
-    tensor = torch.from_numpy(stretched).unsqueeze(0).unsqueeze(0)
+    # Image pre-processing that is passed into the model
+    objects, data_sub, bkg = background_object_extraction(raw_data)
+    ellipses, subject_ellipse, subject_indx = get_ellipses(objects)
+    cleaned_data = clean_image(data_sub, bkg, objects, ellipses, subject_ellipse, subject_indx)
+    cleaned_stretched = arcsinh_stretch(cleaned_data, scale=app_config.STRETCH_SCALE)
+    
+    tensor = torch.from_numpy(cleaned_stretched).unsqueeze(0).unsqueeze(0)
     info_text = f"Format: FITS CCD | Resolution: {w} × {h}"
     return tensor, qimg, info_text
 
