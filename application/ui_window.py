@@ -60,7 +60,7 @@ class GalaxyClassifierApp(QMainWindow):
         image_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; letter-spacing: 1px;")
         left_layout.addWidget(image_title)
 
-        self.preview_label = QLabel("No image loaded\nClick below to select a FITS or JPEG/PNG file")
+        self.preview_label = QLabel("No image loaded\nClick below to select a FITS")
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setStyleSheet(
             "background-color: #0b0f19; border: 2px dashed #233148; "
@@ -71,7 +71,7 @@ class GalaxyClassifierApp(QMainWindow):
         left_layout.addWidget(self.preview_label)
 
         btn_row = QHBoxLayout()
-        self.upload_btn = QPushButton("Select Image (FITS / JPG)")
+        self.upload_btn = QPushButton("Select FITS Image")
         self.upload_btn.clicked.connect(self._open_file_dialog)
         self.predict_btn = QPushButton("Classify Galaxy")
         self.predict_btn.setEnabled(False)
@@ -183,11 +183,14 @@ class GalaxyClassifierApp(QMainWindow):
             )
 
     def _open_file_dialog(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        target_path = dir_path+app_config.IMAGES_PATH
+
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Select Galaxy Image",
-            "",
-            "All Files (*.fits *.fit *.fts *.jpg *.jpeg *.png);;FITS Files (*.fits *.fit *.fts);;Images (*.jpg *.jpeg *.png)"
+            target_path,
+            "FITS Files (*.fits *.fit *.fts)"
         )
         if file_path:
             self._load_image(file_path)

@@ -10,7 +10,6 @@ from PyQt6.QtGui import QImage
 import app_config
 
 
-
 def background_object_extraction(data):
     bkg = sep.Background(data)
     data_sub = data-bkg
@@ -82,6 +81,7 @@ def arcsinh_stretch(image, scale=app_config.STRETCH_SCALE):
 
 
 def process_fits(file_path):
+    
     with fits.open(file_path, memmap=False) as hdul:
         raw_data = None
         for hdu in hdul:
