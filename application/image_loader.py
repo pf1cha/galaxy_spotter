@@ -8,7 +8,7 @@ import sep
 import torch
 from PyQt6.QtGui import QImage
 import app_config
-
+import wget
 
 def background_object_extraction(data):
     bkg = sep.Background(data)
@@ -81,7 +81,7 @@ def arcsinh_stretch(image, scale=app_config.STRETCH_SCALE):
 
 
 def process_fits(file_path):
-    
+
     with fits.open(file_path, memmap=False) as hdul:
         raw_data = None
         for hdu in hdul:
@@ -137,3 +137,9 @@ def load_file(file_path):
     if ext in [".fits", ".fit", ".fts"]:
         return process_fits(file_path)
     return process_optical(file_path)
+
+def get_fits_cutout(ra,dec,arcmin_size,band='r'):
+    pixscale = arcmin_size/256
+    target_path = app_config.CURRENT_DIR+app_config.IMAGES_PATH
+    url = f"https://www.legacysurvey.org/viewer/fits-cutout?ra={ra}&dec={dec}&layer=ls-dr11&pixscale={pixscale}&bands={band}"
+    return app_config.IMAGES_PATH +"/"+ wget.download(url,out=target_path).split(sep='/')[-1]
