@@ -3,10 +3,71 @@ import numpy as np
 from PIL import Image
 from astropy.io import fits
 import matplotlib.cm as cm
+from matplotlib.patches import Ellipse
+import sep
 import torch
 from PyQt6.QtGui import QImage
 import app_config
 
+
+
+def background_object_extraction(data):
+    bkg = sep.Background(data)
+    data_sub = data-bkg
+    objects = sep.extract(data_sub, thresh=1.5, err=bkg.globalrms)
+    return objects, data_sub, bkg
+
+def get_nearest_point(array, point):
+    A = np.array([_e.get_center() for _e in array])
+    distances = np.linalg.norm(A-np.array(point), axis=1)
+    min_index = np.argmin(distances)
+    return min_index, array[min_index]
+
+def get_ellipses(objects):
+    ellipses = []
+
+    for _i in range(len(objects)):
+        _e = Ellipse(xy=(objects['x'][_i], objects['y'][_i]),
+                    width=6*objects['a'][_i],
+                    height=6*objects['b'][_i],
+                    angle=objects['theta'][_i] * 180. / np.pi)
+        _e.set_facecolor('none')
+        _e.set_edgecolor('red')
+        ellipses.append(_e)
+
+    subject_indx, subject_ellipse = get_nearest_point(ellipses,[128,128])
+
+    return ellipses, subject_ellipse, subject_indx
+
+def clean_image(data_sub, bkg, objects, ellipses, subject_ellipse, subject_indx):
+    non_subject_mask = np.zeros(data_sub.shape, dtype=bool)
+
+    for _i in range(len(objects)):
+
+        if _i == subject_indx:
+            continue
+
+        if any(subject_ellipse.contains_points(ellipses[_i].get_verts())):
+            continue
+
+        sep.mask_ellipse(
+            non_subject_mask, 
+            x=objects['x'][_i], 
+            y=objects['y'][_i],
+            a=objects['a'][_i], 
+            b=objects['b'][_i], 
+            theta=objects['theta'][_i], 
+            r=4 
+        )
+
+    mean_bkg = bkg.globalback
+    std_bkg = bkg.globalrms
+    noise_fill = np.random.normal(loc=mean_bkg, scale=std_bkg, size=data_sub.shape)
+
+    cleaned_data = data_sub.copy()
+    cleaned_data[non_subject_mask] = noise_fill[non_subject_mask]
+
+    return cleaned_data
 
 def arcsinh_stretch(image, scale=app_config.STRETCH_SCALE):
     image = np.nan_to_num(image, nan=0.0, posinf=0.0, neginf=0.0)
@@ -34,9 +95,14 @@ def process_fits(file_path):
         raw_data = raw_data[0]
 
     raw_data = np.array(raw_data, dtype=np.float32)
-    stretched = arcsinh_stretch(raw_data, scale=app_config.STRETCH_SCALE)
 
-    colored_rgba = (cm.inferno(stretched) * 255).astype(np.uint8)
+    objects, data_sub, bkg = background_object_extraction(raw_data)
+    ellipses, subject_ellipse, subject_indx = get_ellipses(objects)
+    cleaned_data = clean_image(data_sub, bkg, objects, ellipses, subject_ellipse, subject_indx)
+
+    stretched = arcsinh_stretch(cleaned_data, scale=app_config.STRETCH_SCALE)
+
+    colored_rgba = (cm.inferno(stretched*5) * 255).astype(np.uint8)
     h, w, _ = colored_rgba.shape
     qimg = QImage(colored_rgba.data, w, h, 4 * w, QImage.Format.Format_RGBA8888)
 
