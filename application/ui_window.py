@@ -39,10 +39,15 @@ class GalaxyClassifierApp(QMainWindow):
         title = QLabel("Galaxy Classifier")
         title.setObjectName("HeaderTitle")
         header_text.addWidget(title)
+        subtitle = QLabel("Explore galaxy classification with your own object")
+        subtitle.setObjectName("HeaderSubtitle")
+        header_text.addWidget(subtitle)
 
         self.status_badge = QLabel()
-        self.status_badge.setStyleSheet("padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold;")
-
+        self.status_badge.setStyleSheet(
+            "background-color: #302039; color: #d9a9e8; padding: 6px 12px; "
+            "border: 1px solid #563763; border-radius: 6px; font-size: 11px; font-weight: bold;"
+        )
         header_layout.addLayout(header_text)
         header_layout.addStretch()
         header_layout.addWidget(self.status_badge)
@@ -58,14 +63,14 @@ class GalaxyClassifierApp(QMainWindow):
         left_layout.setSpacing(14)
 
         image_title = QLabel("IMAGE VIEWER")
-        image_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; letter-spacing: 1px;")
+        image_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #c08bd0; letter-spacing: 1px;")
         left_layout.addWidget(image_title)
 
-        self.preview_label = QLabel("No image loaded\nClick below to select a FITS")
+        self.preview_label = QLabel("No image loaded\nClick below to select a FITS image")
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setStyleSheet(
-            "background-color: #0b0f19; border: 2px dashed #233148; "
-            "border-radius: 8px; color: #64748b; font-size: 13px;"
+            "background-color: #110d19; border: 2px dashed #563763; "
+            "border-radius: 8px; color: #a995b4; font-size: 13px;"
         )
         self.preview_label.setMinimumSize(380, 380)
         self.preview_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -86,7 +91,7 @@ class GalaxyClassifierApp(QMainWindow):
         left_layout.addLayout(btn_row)
 
         self.file_info_label = QLabel("No file selected")
-        self.file_info_label.setStyleSheet("color: #64748b; font-size: 11px;")
+        self.file_info_label.setStyleSheet("color: #a995b4; font-size: 11px;")
         left_layout.addWidget(self.file_info_label)
 
         content_layout.addWidget(left_card, stretch=5)
@@ -98,26 +103,28 @@ class GalaxyClassifierApp(QMainWindow):
         right_layout.setSpacing(16)
 
         results_header = QLabel("CLASSIFICATION REPORT")
-        results_header.setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; letter-spacing: 1px;")
+        results_header.setStyleSheet("font-size: 12px; font-weight: bold; color: #c08bd0; letter-spacing: 1px;")
         right_layout.addWidget(results_header)
 
         self.result_badge = QLabel("Awaiting Input")
         self.result_badge.setObjectName("ResultBadge")
         self.result_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.result_badge.setStyleSheet("background-color: #0f172a; color: #64748b;")
+        self.result_badge.setStyleSheet(
+            "background-color: #21182a; color: #b9a7c3; border: 1px solid #392a43;"
+        )
         right_layout.addWidget(self.result_badge)
 
         right_layout.addSpacing(10)
 
         conf_header = QLabel("Confidence Breakdown")
-        conf_header.setStyleSheet("font-size: 13px; font-weight: bold; color: #cbd5e1;")
+        conf_header.setStyleSheet("font-size: 13px; font-weight: bold; color: #f0e4f4;")
         right_layout.addWidget(conf_header)
 
         spiral_row = QHBoxLayout()
         spiral_title = QLabel("Spiral (S)")
-        spiral_title.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        spiral_title.setStyleSheet("color: #c7b4d0; font-size: 12px;")
         self.spiral_pct = QLabel("0.0%")
-        self.spiral_pct.setStyleSheet("color: #38bdf8; font-weight: bold; font-size: 12px;")
+        self.spiral_pct.setStyleSheet("color: #B120D9; font-weight: bold; font-size: 12px;")
         spiral_row.addWidget(spiral_title)
         spiral_row.addStretch()
         spiral_row.addWidget(self.spiral_pct)
@@ -134,9 +141,9 @@ class GalaxyClassifierApp(QMainWindow):
 
         ellip_row = QHBoxLayout()
         ellip_title = QLabel("Elliptical (E)")
-        ellip_title.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        ellip_title.setStyleSheet("color: #c7b4d0; font-size: 12px;")
         self.elliptical_pct = QLabel("0.0%")
-        self.elliptical_pct.setStyleSheet("color: #fbbf24; font-weight: bold; font-size: 12px;")
+        self.elliptical_pct.setStyleSheet("color: #F37A15; font-weight: bold; font-size: 12px;")
         ellip_row.addWidget(ellip_title)
         ellip_row.addStretch()
         ellip_row.addWidget(self.elliptical_pct)
@@ -152,20 +159,22 @@ class GalaxyClassifierApp(QMainWindow):
         right_layout.addSpacing(10)
 
         meta_frame = QFrame()
-        meta_frame.setStyleSheet("background-color: #0f172a; border-radius: 8px; padding: 12px;")
+        meta_frame.setStyleSheet(
+            "background-color: #21182a; border: 1px solid #392a43; border-radius: 8px; padding: 12px;"
+        )
         meta_box = QVBoxLayout(meta_frame)
         meta_box.setSpacing(6)
 
-        self.meta_details = QLabel("Image Specs: -")
+        self.meta_details = QLabel("Format: - | Resolution: -")
         self.meta_device = QLabel(f"Device: {self.engine.device.type.upper()}")
         self.meta_weights = QLabel(f"Weights: {os.path.basename(app_config.WEIGHTS_PATH)}")
 
         for lbl in [self.meta_details, self.meta_device, self.meta_weights]:
-            lbl.setStyleSheet("color: #94a3b8; font-size: 11px;")
+            lbl.setStyleSheet("color: #c7b4d0; font-size: 11px;")
             meta_box.addWidget(lbl)
 
-        right_layout.addWidget(meta_frame)
         right_layout.addStretch()
+        right_layout.addWidget(meta_frame)
 
         content_layout.addWidget(right_card, stretch=4)
         main_layout.addLayout(content_layout)
@@ -202,11 +211,18 @@ class GalaxyClassifierApp(QMainWindow):
         dialog = QDialog(self)
         dialog.setWindowTitle("Request Image")
         dialog.setMinimumWidth(320)
+        dialog.setStyleSheet(
+            "QDialog { background-color: #100d18; color: #c7b4d0; }"
+            "QDialog QLabel, QDialog QLineEdit, QDialog QComboBox, "
+            "QDialog QDialogButtonBox, QDialog QPushButton { color: #c7b4d0; }"
+            "QDialog QLineEdit, QDialog QComboBox { background-color: #21182a; "
+            "border: 1px solid #563763; border-radius: 4px; padding: 5px; }"
+        )
 
         form = QFormLayout(dialog)
         form.setSpacing(10)
 
-        label_style = "color: #000000; font-size: 12px;"
+        label_style = "color: #c7b4d0; font-size: 12px;"
 
         def make_label(text):
             lbl = QLabel(text)
@@ -264,7 +280,7 @@ class GalaxyClassifierApp(QMainWindow):
             if self.engine.is_ready:
                 self.predict_btn.setEnabled(True)
                 self.result_badge.setText("Ready to Classify")
-                self.result_badge.setStyleSheet("background-color: #0f172a; color: #000000;")#94a3b8
+                self.result_badge.setStyleSheet("background-color: #21182a; color: #c7b4d0; border: 1px solid #392a43;")#94a3b8
             else:
                 self.predict_btn.setEnabled(False)
 
@@ -304,13 +320,13 @@ class GalaxyClassifierApp(QMainWindow):
             if res["pred_code"] == 1:
                 self.result_badge.setText(f"SPIRAL GALAXY ({res['confidence'] * 100:.1f}%)")
                 self.result_badge.setStyleSheet(
-                    "background-color: #0369a1; color: #f0f9ff; border: 1px solid #38bdf8; "
+                    "background-color: #3b1d49; color: #f9e9ff; border: 1px solid #a33ac0; "
                     "font-weight: bold; font-size: 16px; border-radius: 8px; padding: 10px;"
                 )
             else:
                 self.result_badge.setText(f"ELLIPTICAL GALAXY ({res['confidence'] * 100:.1f}%)")
                 self.result_badge.setStyleSheet(
-                    "background-color: #b45309; color: #fffbeb; border: 1px solid #fbbf24; "
+                    "background-color: #482516; color: #fff1df; border: 1px solid #e66c12; "
                     "font-weight: bold; font-size: 16px; border-radius: 8px; padding: 10px;"
                 )
         except Exception as e:
