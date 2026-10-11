@@ -1,13 +1,14 @@
 import os
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QPushButton, QVBoxLayout,
-    QHBoxLayout, QFileDialog, QFrame, QProgressBar, QSizePolicy, QMessageBox
+    QHBoxLayout, QFileDialog, QFrame, QProgressBar, QSizePolicy, QMessageBox,
+    QDialog, QFormLayout, QLineEdit, QComboBox, QDialogButtonBox
 )
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
 from style import STYLE_SHEET
-from image_loader import load_file
+from image_loader import load_file, get_fits_cutout
 from predict import GalaxyInferenceEngine
 import app_config
 
@@ -73,11 +74,14 @@ class GalaxyClassifierApp(QMainWindow):
         btn_row = QHBoxLayout()
         self.upload_btn = QPushButton("Select FITS Image")
         self.upload_btn.clicked.connect(self._open_file_dialog)
+        self.coords_btn = QPushButton("Request by Coordinates")
+        self.coords_btn.clicked.connect(self._open_coords_dialog)
         self.predict_btn = QPushButton("Classify Galaxy")
         self.predict_btn.setEnabled(False)
         self.predict_btn.clicked.connect(self._run_prediction)
 
         btn_row.addWidget(self.upload_btn)
+        btn_row.addWidget(self.coords_btn)
         btn_row.addWidget(self.predict_btn)
         left_layout.addLayout(btn_row)
 
@@ -194,6 +198,59 @@ class GalaxyClassifierApp(QMainWindow):
         if file_path:
             self._load_image(file_path)
 
+    def _open_coords_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Request Image")
+        dialog.setMinimumWidth(320)
+
+        form = QFormLayout(dialog)
+        form.setSpacing(10)
+
+        label_style = "color: #94a3b8; font-size: 12px;"
+
+        def make_label(text):
+            lbl = QLabel(text)
+            lbl.setStyleSheet(label_style)
+            return lbl
+
+        ra_input = QLineEdit()
+        dec_input = QLineEdit()
+        size_input = QLineEdit("200.0")
+        band_input = QComboBox()
+        band_input.addItems(["g", "r", "i", "z", "u"])
+
+        form.addRow(make_label("RA (degrees)"), ra_input)
+        form.addRow(make_label("DEC (degrees)"), dec_input)
+        form.addRow(make_label("Size (arcmin)"), size_input)
+        form.addRow(make_label("Band"), band_input)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        try:
+            ra = float(ra_input.text())
+            dec = float(dec_input.text())
+            arcmin_size = float(size_input.text())
+        except ValueError:
+            QMessageBox.warning(self, "Invalid Input", "RA, DEC and size must be numbers.")
+            return
+        band = band_input.currentText()
+
+        try:
+            file_path = get_fits_cutout(ra,dec,arcmin_size,band)
+        except HTTPError:
+            QMessageBox.warning(self, "Invalid Input", "RA, DEC and size must be within the footprint of Legacy Survey DR11.")
+            return
+
+        self._load_image(app_config.CURRENT_DIR+file_path)
+
     def _load_image(self, file_path):
         try:
             tensor, qimg, details = load_file(file_path)
@@ -207,7 +264,7 @@ class GalaxyClassifierApp(QMainWindow):
             if self.engine.is_ready:
                 self.predict_btn.setEnabled(True)
                 self.result_badge.setText("Ready to Classify")
-                self.result_badge.setStyleSheet("background-color: #0f172a; color: #94a3b8;")
+                self.result_badge.setStyleSheet("background-color: #0f172a; color: #000000;")#94a3b8
             else:
                 self.predict_btn.setEnabled(False)
 
