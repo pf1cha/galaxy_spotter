@@ -206,7 +206,7 @@ class GalaxyClassifierApp(QMainWindow):
         form = QFormLayout(dialog)
         form.setSpacing(10)
 
-        label_style = "color: #94a3b8; font-size: 12px;"
+        label_style = "color: #000000; font-size: 12px;"
 
         def make_label(text):
             lbl = QLabel(text)
@@ -217,7 +217,7 @@ class GalaxyClassifierApp(QMainWindow):
         dec_input = QLineEdit()
         size_input = QLineEdit("200.0")
         band_input = QComboBox()
-        band_input.addItems(["g", "r", "i", "z", "u"])
+        band_input.addItems(["g", "r", "z"])
 
         form.addRow(make_label("RA (degrees)"), ra_input)
         form.addRow(make_label("DEC (degrees)"), dec_input)
