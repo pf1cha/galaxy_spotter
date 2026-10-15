@@ -178,9 +178,6 @@ beside it.
 
 ## Results
 
-Add the metrics from your final test run here. Keeping this section tied to a
-specific checkpoint and test split makes the results reproducible.
-
 | Metric | Result |
 | --- | ---: |
 | Test loss | 0.3834 |
