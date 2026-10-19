@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, QFileDialog, QFrame, QProgressBar, QSizePolicy, QMessageBox,
     QDialog, QFormLayout, QLineEdit, QComboBox, QDialogButtonBox
 )
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt
 
 from style import STYLE_SHEET
@@ -17,6 +17,7 @@ class GalaxyClassifierApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Galaxy Spotter")
+        self.setWindowIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + 'logo.png'))
         self.resize(960, 700)
         self.setStyleSheet(STYLE_SHEET)
 
